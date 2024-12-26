@@ -1,10 +1,16 @@
 import express from 'express'
 const router = express.Router();
-import User from '../models/candidate.js'
+import User from '../models/user.js'
 import {jwtAuthMiddleware, generateToken}from '../jwt.js'
-import candidate from "../models/candidate.js"
+import Candidate from "../models/candidate.js"
 
-const Admin_ID = process.env.ADMIN_ID;
+// const Admin_ID = process.env.ADMIN_ID;
+
+const isVoting = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    return currentHour >= 9 && currentHour < 18; // Between 9 AM and 3 PM
+};
   const checkAdminRole = async (userID) =>{
     try{
         const user = await User.findById(userID);
@@ -17,9 +23,10 @@ const Admin_ID = process.env.ADMIN_ID;
 
  }
  //to add a candidate
-router.post('/', jwtAuthMiddleware, async (req, res) =>{
+router.post('/', async (req, res) =>{
     try{
-        if(!(checkAdminRole(req.user.id)))
+        if(!(await checkAdminRole(req.user.id)))
+            
             return res.status(403).json({message: 'user does not have admin role'});
         
         const data = req.body
@@ -40,8 +47,7 @@ router.post('/', jwtAuthMiddleware, async (req, res) =>{
 })
 
 
-//to vote
-router.put('/:candidateID', jwtAuthMiddleware, async(req, res)=>{
+router.put('/:candidateID', async(req, res)=>{
     try{
         if(!checkAdminRole(req.user.id))
             return res.status(404).json({message: 'user does not have admin role'});
@@ -49,7 +55,7 @@ router.put('/:candidateID', jwtAuthMiddleware, async(req, res)=>{
         const candidateId = req.params.candidateID;
         const updatedCandidateData = req.body;
 
-        const response = await candidate.findByIdAndUpdate(candidateID, updatedCandidateData,
+        const response = await Candidate.findByIdAndUpdate(candidateId, updatedCandidateData,
             {
                 new: true,
                 runValidators: true,
@@ -73,7 +79,7 @@ router.put('/:candidateID', jwtAuthMiddleware, async(req, res)=>{
 
 
 
-    router.delete('/:candidateID', jwtAuthMiddleware, async(req, res)=>{
+    router.delete('/:candidateID', async(req, res)=>{
         try{
             if(!checkAdminRole(req.user.id))
                 return res.status(403).json({message: 'user does not have admin role'});
@@ -81,7 +87,7 @@ router.put('/:candidateID', jwtAuthMiddleware, async(req, res)=>{
             const candidateId = req.params.candidateID;
             
     
-            const response = await candidate.findByIdAndDelete(candidateID);
+            const response = await Candidate.findByIdAndDelete(candidateId);
                 
            if(!response) {
             return res.status(404).json({error: 'Candidate not found'});
@@ -98,11 +104,19 @@ router.put('/:candidateID', jwtAuthMiddleware, async(req, res)=>{
 })
 
 
-router.post('/vote/:candidateID', jwtAuthMiddleware, async (req, res)=>{
-    candidateID = req.params.candidateID;
-    userId = req.user.id;
+
+
+
+router.post('/vote/:candidateID', isVoting,  async (req, res)=>{
+    const candidateID = req.params.candidateID;
+    const userId = req.user.id;
 
     try{
+
+        if (!isVoting()) {
+            return res.status(403).json({ message: 'Voting is only allowed between 9 AM and 6 PM' });
+        }
+        
         const candidate = await Candidate.findById(candidateID);
         if(!candidate){
           return res.status(404).json({ message: 'Candidate not found'});
@@ -122,7 +136,7 @@ router.post('/vote/:candidateID', jwtAuthMiddleware, async (req, res)=>{
         }
 
 
-        candidate.votes.push({user: userID})
+        candidate.votes.push({user: userId})
         candidate.voteCount++;
         await candidate.save();
 
@@ -144,13 +158,13 @@ router.get('/vote/count', async (req, res) => {
     try{
         const candidate = await Candidate.find().sort({voteCount: 'desc'});
 
-        const voterecord = candidate.map((data)=>{
+        const voteRecord = candidate.map((data)=>{
             return{
                 party: data.party,
                 count: data.voteCount
             }
         });
-        return res
+        return res.status(200).json(voteRecord)
 
     }catch(err){
         console.log(err);

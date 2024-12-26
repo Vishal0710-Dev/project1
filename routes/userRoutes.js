@@ -31,17 +31,23 @@ router.post('/signup', async (req, res) =>{
 
 router.post('/login', async(req, res) => {
     try{
-        const{aadharCardNumber, password} = req.body;
+        const {aadharCardNumber, password} = req.body;
+        if(!aadharCardNumber || !password){
+            return res.status(400).json({error: 'Aadhar Card Number and password are required'});
+        }
 
         const user = await User.findOne({aadharCardNumber: aadharCardNumber});
 
-        if( !user || !(await user.comparePass)){
-            return RegExp.status(401).json({error: 'Invalid username or password'});
+        if( !user || !(await user.comparePassword(password))){
+            return res.status(401).json({error: 'Invalid Aadhar Card Number or password'});
         }
         const payload = {
-            id: user.id,
+            id: user.aadharCardNumber,
+    
         }
-        const token = generateToken(payload);
+        console.log(payload)
+        // const token = generateToken(payload);
+        const token = jwt.sign(payload, JWT_SECRET, {expiresIn:3600})
 
         res.json({token})
     } catch(err){
@@ -63,7 +69,7 @@ router.get('/profile', jwtAuthMiddleware, async (req, res) => {
         console.error(err);
         res.status(500).json({ error: 'Internal Server Error'});
     }
-})
+});
 
 router.put('/profile/password', jwtAuthMiddleware, async(req, res)=>{
     try{
