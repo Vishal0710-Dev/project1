@@ -4,15 +4,24 @@ import bcrypt from 'bcrypt'
 const candidateSchema = new mongoose.Schema({
    name: {
        type: String,
+       unique: true,
        require: true
    },
    party: {
        type: String,
+       unique: true,
        require: true
    },
    age: {
        type: Number,
        require: true
+   },
+   WardNumber: {
+            type: Number,
+            enum:[1, 2, 3, 4],
+            unique: true,
+            required: true
+
    },
 
    //

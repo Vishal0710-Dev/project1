@@ -5,6 +5,8 @@ import {jwtAuthMiddleware} from "./jwt.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import candidateRoutes from "./routes/candidateRoutes.js";
+//import userController from './controllers/usercontroller.js';
+
  //import testRoute from "./routes/test.js"
 
 const app = express();
@@ -25,4 +27,7 @@ app.use("/candidate", jwtAuthMiddleware, candidateRoutes);
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
     connectDB();
+
+
+
 });
