@@ -1,6 +1,6 @@
 import express from "express";
 import {jwtAuthMiddleware} from "../jwt.js";
-import { addCandidateController, updateCandidateController, deleteCandidateController, voteController, getVoteCountsController, } from '../controller/candidate.js';
+import { addCandidateController, updateCandidateController, deleteCandidateController, voteController, getVoteCountsController, getCandidatesController } from '../controller/candidate.js';
 
 const router = express.Router();
 const checkVotingTime = (req, res, next) => {
@@ -27,5 +27,7 @@ router.put('/:candidateID', jwtAuthMiddleware, updateCandidateController);
 router.delete('/:candidateID', jwtAuthMiddleware, deleteCandidateController);
 router.post('/vote/:candidateID', jwtAuthMiddleware,checkVotingTime, voteController);
 router.get('/vote/count', getVoteCountsController);
+router.get('/candidates', jwtAuthMiddleware, getCandidatesController);
+
 
 export default router

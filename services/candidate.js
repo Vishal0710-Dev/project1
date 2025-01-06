@@ -1,5 +1,6 @@
 import User from '../models/user.js';
 import Candidate from '../models/candidate.js';
+import candidate from '../models/candidate.js';
 
 export const isAdmin = async (userID) => {
     try {
@@ -18,7 +19,6 @@ export const addCandidate = async (data) => {
         throw new Error('Error adding candidate');
     }
 };
-
 
 export const updateCandidate = async (candidateId, updatedData) => {
     try {
@@ -72,3 +72,15 @@ export const getVoteCounts = async () => {
         throw new Error('Error fetching vote counts');
     }
 };
+export const getCandidates = async () => {
+    try{
+        const candidates = await Candidate.find();
+        return candidates.map((candidate) => ({
+        name: candidate.name,
+        party: candidate.party,
+        wardNumber: candidate.WardNumber
+        }));
+    }catch (err) {
+        throw new Error('Error fetching candidates');
+    }
+          };

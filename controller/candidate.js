@@ -1,4 +1,5 @@
-import { isAdmin, addCandidate, updateCandidate, deleteCandidate, voteForCandidate, getVoteCounts,} from '../services/candidate.js';
+
+import { isAdmin, addCandidate, updateCandidate, deleteCandidate, voteForCandidate, getVoteCounts, getCandidates} from '../services/candidate.js';
 
 export const addCandidateController = async (req, res) => {
     try {
@@ -12,6 +13,7 @@ export const addCandidateController = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 export const updateCandidateController = async (req, res) => {
     try {
@@ -60,6 +62,16 @@ export const getVoteCountsController = async (req, res) => {
         const voteCounts = await getVoteCounts();
         res.status(200).json(voteCounts);
     } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const getCandidatesController = async (req, res) => {
+    try{
+        const candidates = await getCandidates();
+        res.status(200).json({ candidates });
+    }catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
